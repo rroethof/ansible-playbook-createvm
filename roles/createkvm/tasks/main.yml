@@ -1,0 +1,39 @@
+---
+# tasks file for createkvm
+
+- name: ensure disks are created
+  command: qemu-img create -f {{item.1.type}} -o preallocation=metadata {{item.1.path}} {{item.1.size}}
+  with_subelements: 
+    - kvm_vms
+    - disks
+  when: item.1.size is defined and item.1.type is defined and item.1.type in ["qcow2", "raw"]
+  tags: ["configuration","kvm"]
+
+- name: ensure disks attributes are correct
+  command: chown libvirt-qemu:kvm {{item.1.path}}
+  with_subelements: 
+    - kvm_vms
+    - disks
+  when: item.1.size is defined and item.1.type is defined and item.1.type in ["qcow2", "raw"]
+  tags: ["configuration","kvm"]
+
+- name: ensure disks rights are correct
+  command: chmod 644 {{item.1.path}}
+  with_subelements: 
+    - kvm_vms
+    - disks
+  when: item.1.size is defined and item.1.type is defined and item.1.type in ["qcow2", "raw"]
+  tags: ["configuration","kvm"]
+
+- name: define VMs
+  virt: name={{item.name}}
+        command=define
+        xml="{{ lookup('template', 'kvm.libvirt.xml.j2') }}"
+        uri={{kvm_uri}}
+  with_items: kvm_vms
+  tags: ["configuration","kvm"]
+
+- name: start VMs
+  virt: name={{item.name}} state=running uri={{kvm_uri}}
+  with_items: kvm_vms
+  tags: ["service","kvm"]

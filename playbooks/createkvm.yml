@@ -1,0 +1,28 @@
+- hosts: cloud.familieroethof.nl
+  user: root
+  become: true
+  vars:
+    kvm_vms:
+    - name: "workshop-lb01"
+      vcpu: 1
+      memory: 512
+      disks: 
+      - path: /var/lib/libvirt/images/workshop-lb01.img
+        type: qcow2
+        size: 10G
+      nics:
+      - network: kvmwan
+      - network: intranet
+      
+    - name: "workshop-lb02"
+      vcpu: 1
+      memory: 512
+      disks: 
+      - path: /var/lib/libvirt/images/workshop-lb02.img
+        type: qcow2
+        size: 10G
+      nics:
+      - network: kvmwan
+      - network: intranet
+  roles:
+    - { role: createkvm }
